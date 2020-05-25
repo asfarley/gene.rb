@@ -134,11 +134,12 @@ if __FILE__ == $0
 	scan_variations = genome.to_scan_variations
 	genes = Set.new # Declaring genes as a Set (rather than an array) means that we don't have to search for inclusion when appending genes from each scan.
 
-	scan_variations.each do |genome_scan|
+	scan_variations.each do |scan|
 		# Split scan into triplets for comparison with start and end-codons. Discard elements containing less than three bases.
-		triplets = genome_scan.to_triplets
+		triplets = scan.to_triplets
 		# Scan triplets for matches to [START_CODON ... END_CODON], including nested ORFs with multiple start-codons (but not multiple end-codons).
 		genes_in_scan = triplets.loose_start_hard_end(START_CODON,END_CODONS)
+		# Take ORFs above minimum length and covert to proteins (amino-acid chains).
 		genes_in_scan.each{ |gene| genes << gene.to_protein if gene.length >= MIN_ORF_LENGTH }
 	end
 

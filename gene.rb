@@ -9,7 +9,6 @@
 #
 
 require 'set' 
-#require 'colorize'
 
 START_CODONS = ["ATG", "GTC"]
 END_CODONS = ["TAA","TGA","TAG"]
@@ -109,11 +108,11 @@ class String
 		self.gsub("T","U")
 	end
 
-	# Generate six different scans of a genome, using 0/1/2 offsets and forward/reverse directions.
+	# Generate six different scans of a genome, using forward/reverse-complement directions with 0/1/2 offsets.
 	def to_scan_variations
 		forward_0 = self
-		forward_1 = forward_0[1..]
-		forward_2 = forward_0[2..]
+		forward_1 = self[1..]
+		forward_2 = self[2..]
 		reverse_0 = self.reverse.to_DNA_complement
 		reverse_1 = self.reverse.to_DNA_complement[1..]
 		reverse_2 = self.reverse.to_DNA_complement[2..]
@@ -144,7 +143,6 @@ if __FILE__ == $0
 	genome = input_file_genome_lines.join("").gsub(/[^0-9a-z ]/i, '')
 	scan_variations = genome.to_scan_variations
 	genes = Set.new # Declaring genes as a Set (rather than an array) means that we don't have to search for inclusion when appending genes from each scan.
-
 	verbose_mode = (ARGV[1] == '-v')
 
 	if verbose_mode
@@ -154,7 +152,7 @@ if __FILE__ == $0
 
 	scan_variations.each do |scan|
 		# Split scan into triplets for comparison with start and end-codons. Discard elements containing less than three bases.
-		triplets = scan.to_triplets\
+		triplets = scan.to_triplets
 
 		if verbose_mode
 			puts "All possible amino-acid chains:"

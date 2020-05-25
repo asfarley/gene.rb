@@ -32,11 +32,7 @@ class String
 		scan_variations = [forward_0,forward_1, forward_2,reverse_0, reverse_1,reverse_2]
 	end
 	def to_DNA_complement
-		complements = {
-			"A" => "T",
-			"T" => "A",
-			"G" => "C",
-			"C" => "G" }
+		complements = {"A" => "T", "T" => "A", "G" => "C", "C" => "G" }
 		self.gsub(/\w/,complements)
 	end
 end

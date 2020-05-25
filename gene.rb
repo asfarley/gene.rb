@@ -9,9 +9,9 @@
 #
 
 require 'set' 
-require 'colorize'
+#require 'colorize'
 
-START_CODON = "ATG"
+START_CODONS = ["ATG", "GTC"]
 END_CODONS = ["TAA","TGA","TAG"]
 MIN_ORF_LENGTH = 96
 
@@ -84,16 +84,17 @@ GENETIC_CODE = { "UUU" => 'F', \
 # [ "ATG", "AAA", "TAA"]
 class TripletArray < Array
 	# Get all matching subsets of TripletArrays contained in this TripletArray.
-	def loose_start_hard_end(start_element,end_set)
+	def loose_start_hard_end(start_set,end_set)
 		self.inject([]) { |accum,elem| 
 			accum.each{ |partial| partial << elem if not end_set.include? partial.last }
-			accum << TripletArray.new([elem]) if elem == start_element
+			accum << TripletArray.new([elem]) if start_set.include? elem
 			accum 
 		}
 	end
 	
 	def to_protein
-		self.map{ |triplet| GENETIC_CODE[triplet.to_RNA] }.join
+		amino_bases = self.map{ |triplet| GENETIC_CODE[triplet.to_RNA] }.join
+		(amino_bases[0] == 'V') ? amino_bases[1..] : amino_bases
 	end
 end
 
@@ -113,14 +114,24 @@ class String
 		forward_duplicated_0 = self + self
 		forward_duplicated_1 = forward_duplicated_0[1..]
 		forward_duplicated_2 = forward_duplicated_0[2..]
-		reverse_duplicated_0 = forward_duplicated_0.reverse
-		reverse_duplicated_1 = forward_duplicated_1.reverse
-		reverse_duplicated_2 = forward_duplicated_2.reverse
+		reverse_duplicated_0 = forward_duplicated_0.reverse.to_DNA_complement
+		reverse_duplicated_1 = forward_duplicated_1.reverse.to_DNA_complement
+		reverse_duplicated_2 = forward_duplicated_2.reverse.to_DNA_complement
 
 		scan_variations = [forward_duplicated_0, \
 		forward_duplicated_1, forward_duplicated_2, \
 		reverse_duplicated_0, reverse_duplicated_1, \
 		reverse_duplicated_2]
+	end
+
+	def to_DNA_complement
+		complements = {
+			"A" => "T",
+			"T" => "A",
+			"G" => "C",
+			"C" => "G"
+		}
+		self.gsub(/\w/,complements)
 	end
 end
 
@@ -137,14 +148,18 @@ if __FILE__ == $0
 	scan_variations.each do |scan|
 		# Split scan into triplets for comparison with start and end-codons. Discard elements containing less than three bases.
 		triplets = scan.to_triplets
+		#puts "All possible amino-acid chains:"
+		#puts "#{triplets.to_protein}\r\n\r\n"
+
+		#puts "Triplets: \r\n#{triplets}\r\n"
 		# Scan triplets for matches to [START_CODON ... END_CODON], including nested ORFs with multiple start-codons (but not multiple end-codons).
-		genes_in_scan = triplets.loose_start_hard_end(START_CODON,END_CODONS)
+		genes_in_scan = triplets.loose_start_hard_end(START_CODONS,END_CODONS)
 		# Take ORFs above minimum length and covert to proteins (amino-acid chains).
 		genes_in_scan.each{ |gene| genes << gene.to_protein if gene.length >= MIN_ORF_LENGTH }
 	end
 
 	genes.each do  |gene|
-		puts "#{gene}\r\n"
-		puts "Length:#{gene.length}\r\n".yellow
+		puts "#{gene}"
+		puts "Length:#{gene.length}\r\n"
 	end
 end

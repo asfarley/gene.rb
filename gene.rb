@@ -83,13 +83,12 @@ GENETIC_CODE = { "UUU" => 'F', \
 # A TripletArray is an array of base triplets:
 # [ "ATG", "AAA", "TAA"]
 class TripletArray < Array
+	# Get all matching subsets of TripletArrays contained in this TripletArray.
 	def loose_start_hard_end(start_element,end_set)
 		self.inject([]) { |accum,elem| 
-			accum.each{ |partial| 
-				partial << elem if not end_set.include? partial.last
-			}
+			accum.each{ |partial| partial << elem if not end_set.include? partial.last }
 			accum << TripletArray.new([elem]) if elem == start_element
-			accum
+			accum 
 		}
 	end
 	
@@ -138,7 +137,6 @@ if __FILE__ == $0
 	scan_variations.each do |genome_scan|
 		# Split scan into triplets for comparison with start and end-codons. Discard elements containing less than three bases.
 		triplets = genome_scan.to_triplets
-		
 		# Scan triplets for matches to [START_CODON ... END_CODON], including nested ORFs with multiple start-codons (but not multiple end-codons).
 		genes_in_scan = triplets.loose_start_hard_end(START_CODON,END_CODONS)
 		genes_in_scan.each{ |gene| genes << gene.to_amino if gene.length >= MIN_ORF_LENGTH }
@@ -146,6 +144,6 @@ if __FILE__ == $0
 
 	genes.each do  |gene|
 		puts "#{gene}\r\n"
-		puts "Length:#{gene.length}\r\n\r\n".yellow
+		puts "Length:#{gene.length}\r\n".yellow
 	end
 end

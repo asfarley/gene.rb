@@ -1,8 +1,8 @@
 # Gene.rb
 A library for parsing FASTA-format genome data.
 
-alexander.s.farley@gmail.com
-May 20, 2020
+alexander.s.farley@gmail.com  
+May 20, 2020  
 
 Example:
 ```

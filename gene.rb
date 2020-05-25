@@ -92,7 +92,7 @@ class TripletArray < Array
 		}
 	end
 	
-	def to_amino
+	def to_protein
 		self.map{ |triplet| GENETIC_CODE[triplet.to_RNA] }.join
 	end
 end
@@ -139,7 +139,7 @@ if __FILE__ == $0
 		triplets = genome_scan.to_triplets
 		# Scan triplets for matches to [START_CODON ... END_CODON], including nested ORFs with multiple start-codons (but not multiple end-codons).
 		genes_in_scan = triplets.loose_start_hard_end(START_CODON,END_CODONS)
-		genes_in_scan.each{ |gene| genes << gene.to_amino if gene.length >= MIN_ORF_LENGTH }
+		genes_in_scan.each{ |gene| genes << gene.to_protein if gene.length >= MIN_ORF_LENGTH }
 	end
 
 	genes.each do  |gene|

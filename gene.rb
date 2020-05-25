@@ -111,17 +111,17 @@ class String
 
 	# Generate six different scans of a genome, using 0/1/2 offsets and forward/reverse directions.
 	def to_scan_variations
-		forward_duplicated_0 = self + self
-		forward_duplicated_1 = forward_duplicated_0[1..]
-		forward_duplicated_2 = forward_duplicated_0[2..]
-		reverse_duplicated_0 = forward_duplicated_0.reverse.to_DNA_complement
-		reverse_duplicated_1 = forward_duplicated_1.reverse.to_DNA_complement
-		reverse_duplicated_2 = forward_duplicated_2.reverse.to_DNA_complement
+		forward_0 = self
+		forward_1 = forward_0[1..]
+		forward_2 = forward_0[2..]
+		reverse_0 = self.reverse.to_DNA_complement
+		reverse_1 = self.reverse.to_DNA_complement[1..]
+		reverse_2 = self.reverse.to_DNA_complement[2..]
 
-		scan_variations = [forward_duplicated_0, \
-		forward_duplicated_1, forward_duplicated_2, \
-		reverse_duplicated_0, reverse_duplicated_1, \
-		reverse_duplicated_2]
+		scan_variations = [forward_0, \
+		forward_1, forward_2, \
+		reverse_0, reverse_1, \
+		reverse_2]
 	end
 
 	def to_DNA_complement
@@ -145,13 +145,22 @@ if __FILE__ == $0
 	scan_variations = genome.to_scan_variations
 	genes = Set.new # Declaring genes as a Set (rather than an array) means that we don't have to search for inclusion when appending genes from each scan.
 
+	verbose_mode = (ARGV[1] == '-v')
+
+	if verbose_mode
+		puts "Genome: \r\n#{genome}\r\n"
+		puts "Complement: \r\n#{genome.reverse.to_DNA_complement}\r\n"
+	end
+
 	scan_variations.each do |scan|
 		# Split scan into triplets for comparison with start and end-codons. Discard elements containing less than three bases.
-		triplets = scan.to_triplets
-		#puts "All possible amino-acid chains:"
-		#puts "#{triplets.to_protein}\r\n\r\n"
+		triplets = scan.to_triplets\
 
-		#puts "Triplets: \r\n#{triplets}\r\n"
+		if verbose_mode
+			puts "All possible amino-acid chains:"
+			puts "#{triplets.to_protein}\r\n\r\n"
+			puts "Triplets: \r\n#{triplets}\r\n"
+		end
 		# Scan triplets for matches to [START_CODON ... END_CODON], including nested ORFs with multiple start-codons (but not multiple end-codons).
 		genes_in_scan = triplets.loose_start_hard_end(START_CODONS,END_CODONS)
 		# Take ORFs above minimum length and covert to proteins (amino-acid chains).

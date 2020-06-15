@@ -93,7 +93,7 @@ class TripletArray < Array
 	
 	def to_protein
 		amino_bases = self.map{ |triplet| GENETIC_CODE[triplet.to_RNA] }.join
-		(amino_bases[0] == 'V') ? amino_bases[1..] : amino_bases
+		(amino_bases[0] == 'V') ? amino_bases[1..] : amino_bases  # Is this right? Seems like I needed this to get correct results for ORFs with non-canonical start codon GTC.
 	end
 end
 
@@ -146,18 +146,20 @@ if __FILE__ == $0
 	verbose_mode = (ARGV[1] == '-v')
 
 	if verbose_mode
-		puts "Genome: \r\n#{genome}\r\n"
-		puts "Complement: \r\n#{genome.reverse.to_DNA_complement}\r\n"
+		puts "Genome: \r\n#{genome}\r\n\r\n"
+		puts "Reverse-complement: \r\n#{genome.reverse.to_DNA_complement}\r\n\r\n"
 	end
 
+	puts "----Scanning genome----"
 	scan_variations.each do |scan|
 		# Split scan into triplets for comparison with start and end-codons. Discard elements containing less than three bases.
+		
 		triplets = scan.to_triplets
 
 		if verbose_mode
-			puts "All possible amino-acid chains:"
+			puts "Scan converted to amino-acid chain:"
 			puts "#{triplets.to_protein}\r\n\r\n"
-			puts "Triplets: \r\n#{triplets}\r\n"
+			puts "Triplets: \r\n#{triplets}\r\n\r\n"
 		end
 		# Scan triplets for matches to [START_CODON ... END_CODON], including nested ORFs with multiple start-codons (but not multiple end-codons).
 		genes_in_scan = triplets.loose_start_hard_end(START_CODONS,END_CODONS)

@@ -9,7 +9,9 @@
 #
 
 require 'set' 
+require 'optparse'
 
+# May want to incorporate Shine-Dalgarno sequence (or Kozak consensus sequence) in order to better filter candidate ORFs
 START_CODONS = ["ATG", "GTC"]
 END_CODONS = ["TAA","TGA","TAG"]
 MIN_ORF_LENGTH = 96
@@ -136,16 +138,41 @@ end
 
 # Example usage: load a file from the first command-line argument and parse ORFs.
 if __FILE__ == $0
-	INPUT_FILE_PATH = ARGV[0]
+	options = {}
+	OptionParser.new do |opts|
+	  opts.banner = "Usage: gene.rb [options]"
+	  
+	  opts.on("-iINPUT", "--input=INPUT", "Input path") do |i|
+		options[:input] = i
+	  end
+
+	  opts.on("-v", "--verbose", "Verbose output") do |v|
+		options[:verbose] = true
+	  end
+	  
+	  opts.on("-n", "--number", "Output number of ORFs identified") do |v|
+		options[:number] = true
+	  end
+	  
+	  opts.on("-l", "--length", "Output length of ORFs") do |v|
+		options[:length] = true
+	  end
+	  
+	  opts.on("-f", "--fragment", "Output fragment of ORFs") do |v|
+		options[:fragment] = true
+	  end
+	  
+	end.parse!
+
+	INPUT_FILE_PATH = options[:input]
 	input_file_lines = IO.readlines(INPUT_FILE_PATH)
 	#input_file_header = input_file_lines[0]
 	input_file_genome_lines = input_file_lines[1..-1]
 	genome = input_file_genome_lines.join("").gsub(/[^0-9a-z ]/i, '')
 	scan_variations = genome.to_scan_variations
 	genes = Set.new # Declaring genes as a Set (rather than an array) means that we don't have to search for inclusion when appending genes from each scan.
-	verbose_mode = (ARGV[1] == '-v')
 
-	if verbose_mode
+	if options[:verbose]
 		puts "Genome: \r\n#{genome}\r\n\r\n"
 		puts "Reverse-complement: \r\n#{genome.reverse.to_DNA_complement}\r\n\r\n"
 	end
@@ -156,7 +183,7 @@ if __FILE__ == $0
 		
 		triplets = scan.to_triplets
 
-		if verbose_mode
+		if options[:verbose]
 			puts "Scan converted to amino-acid chain:"
 			puts "#{triplets.to_protein}\r\n\r\n"
 			puts "Triplets: \r\n#{triplets}\r\n\r\n"
@@ -166,9 +193,24 @@ if __FILE__ == $0
 		# Take ORFs above minimum length and covert to proteins (amino-acid chains).
 		genes_in_scan.each{ |gene| genes << gene.to_protein if gene.length >= MIN_ORF_LENGTH }
 	end
-
-	genes.each do  |gene|
-		puts "#{gene}"
-		puts "Length:#{gene.length}\r\n"
+	
+	if options[:number]
+		puts "Identified #{genes.length} ORFs."
+	end
+	
+	sorted_genes = genes.sort_by{ |gene| gene.length }
+	
+	sorted_genes.each do  |gene|
+		if options[:verbose]
+			puts "#{gene}"
+		end
+		
+		if options[:length]
+			puts "Length:#{gene.length}\r\n"
+		end
+		
+		if options[:fragment]
+			puts "#{gene[0..5]}\r\n\r\n"
+		end
 	end
 end
